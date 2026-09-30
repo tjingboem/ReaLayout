@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ReaLayout</title>
+<style>
+  :root {
+    --bg: #1a1c20;
+    --panel-bg: #22252b;
+    --grid: #2a2e35;
+    --border: #3a3f48;
+    --text: #e8e8ea;
+    --dim: #8a8f99;
+    --knob: #c98a3f;
+    --knob-border: #ffb35c;
+    --box: #3a6ea5;
+    --box-border: #5c9fe0;
+    --selected: #4ade80;
+    --panel-outline: #555b66;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+  }
+  #toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--panel-bg);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  .grp {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 4px 8px;
+    background: var(--bg);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .grp label.grptitle { color: var(--dim); font-size: 11px; margin-right: 4px; text-transform: uppercase; letter-spacing: .04em; }
+  button {
+    background: var(--box);
+    color: white;
+    border: 1px solid var(--box-border);
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  button:hover { filter: brightness(1.15); }
+  button:active { filter: brightness(0.9); }
+  button.active { background: var(--selected); border-color: var(--selected); color: #06210f; font-weight: 600; }
+  button.danger { background: #7a3030; border-color: #a04545; }
+  button.ghost { background: transparent; border-color: var(--border); color: var(--dim); }
+  button.ghost:hover { color: var(--text); border-color: var(--dim); }
+  #zoom { display: flex; align-items: center; gap: 4px; }
+  #zoomLabel { color: var(--dim); font-size: 12px; min-width: 40px; text-align: center; }
+  #canvasWrap {
+    overflow: auto;
+    padding: 30px;
+  }
+  #canvas {
+    position: relative;
+    background: var(--grid);
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 20px 20px, 20px 20px;
+    border: 1px solid var(--border);
+  }
+  .panelOutline {
+    position: absolute;
+    border: 1px dashed var(--panel-outline);
+    pointer-events: none;
+  }
+  .panelOutline .lbl {
+    position: absolute;
+    top: -18px;
+    left: 2px;
+    font-size: 11px;
+    color: var(--panel-outline);
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+  .el {
+    position: absolute;
+    cursor: move;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 10px;
+    line-height: 1.15;
+    padding: 2px;
+    user-select: none;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    /* overflow is on the text span below, not here -- clipping the whole
+       element also clips the resize handle, which sits deliberately just
+       outside the box on small elements it would otherwise dominate. */
+  }
+  .el > span {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .el.text > span {
+    justify-content: flex-start;
+    text-align: left;
+  }
+  .el.knob {
+    background: var(--knob);
+    border: 1.5px solid var(--knob-border);
+    border-radius: 50%;
+  }
+  .el.box {
+    background: var(--box);
+    border: 1.5px solid var(--box-border);
+    border-radius: 4px;
+  }
+  .el.text {
+    background: transparent;
+    border: 1px dashed rgba(255,255,255,0.18);
+    color: var(--text);
+    text-shadow: none;
+    font-weight: 600;
+    justify-content: flex-start;
+    text-align: left;
+  }
+  .labelGhost {
+    position: absolute;
+    pointer-events: none;
+    border: 1px dashed rgba(255,255,255,0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: rgba(255,255,255,0.32);
+    letter-spacing: .02em;
+  }
+  .el.selected {
+    outline: 2px solid var(--selected);
+    outline-offset: 2px;
+    z-index: 50;
+  }
+  .handle {
+    position: absolute;
+    right: -6px;
+    bottom: -6px;
+    width: 12px;
+    height: 12px;
+    background: var(--selected);
+    border: 1px solid #06210f;
+    border-radius: 3px;
+    cursor: nwse-resize;
+    z-index: 60;
+  }
+  #inspector {
+    position: fixed;
+    right: 16px;
+    top: 70px;
+    width: 220px;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12px;
+    color: var(--dim);
+    z-index: 90;
+  }
+  #inspector b { color: var(--text); display: block; margin-bottom: 6px; font-size: 13px; }
+  #inspector .row { display: flex; justify-content: space-between; padding: 2px 0; }
+  #exportBox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  #exportBox.show { display: flex; }
+  #exportPanel {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    width: 640px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  #exportText {
+    flex: 1;
+    min-height: 400px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 12px;
+    white-space: pre;
+    overflow: auto;
+  }
+  #hint {
+    color: var(--dim);
+    font-size: 12px;
+    padding: 0 14px 10px;
+  }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <div class="grp" id="toolbarEdit">
+    <button id="btnDuplicate" class="ghost">Duplicate</button>
+    <button id="btnDelete" class="danger ghost">Delete</button>
+    <button id="btnMatchKnobSize" class="ghost">Match knob sizes to selection</button>
+    <button id="btnAdd" class="ghost">+ Add box</button>
+    <button id="btnAddText" class="ghost">+ Add text</button>
+  </div>
+  <div class="grp">
+    <button id="btnUndo" class="ghost" title="Ctrl+Z">↶ Undo</button>
+    <button id="btnRedo" class="ghost" title="Ctrl+Shift+Z">↷ Redo</button>
+  </div>
+  <div class="grp" id="zoom">
+    <button id="zoomOut" class="ghost">−</button>
+    <span id="zoomLabel">150%</span>
+    <button id="zoomIn" class="ghost">+</button>
+  </div>
+  <div class="grp">
+    <label class="grptitle">Snap</label>
+    <button data-snap="0">Off</button>
+    <button data-snap="2">2px</button>
+    <button data-snap="5">5px</button>
+    <button data-snap="10">10px</button>
+  </div>
+  <div class="grp">
+    <button id="btnSave">💾 Save to file</button>
+    <button id="btnLoad" class="ghost">Load from file</button>
+    <input type="file" id="fileInput" accept=".json" style="display:none">
+  </div>
+  <div class="grp">
+    <button id="btnExport">Export as text</button>
+    <button id="btnReset" class="ghost">Reset this view</button>
+  </div>
+</div>
+<div id="hint">Drag an element to move it (drag it into a neighbouring panel to move it there too — nothing reparents, it's all one shared space). Shift+click to add/remove elements from a multi-selection, then drag any of them to move the whole group together (resizing stays single-element only). Drag the small green handle to resize. Click to select, double-click the label to rename. Alt+click cycles down through anything stacked underneath if two elements overlap. Ctrl+click and hold shows a pink crosshair that follows the cursor with its x,y in plugin pixels; release to hide it. Elements whose state is "*" show in every state of their panel, so move them once and they move everywhere.</div>
+
+<div id="canvasWrap">
+  <div id="canvas"></div>
+</div>
+
+<div id="inspector" style="display:none">
+  <b id="inspLabel"></b>
+  <div class="row"><span>panel</span><span id="inspPanel"></span></div>
+  <div class="row"><span>state</span><span id="inspState"></span></div>
+  <div class="row"><span>x, y</span><span id="inspXY"></span></div>
+  <div class="row"><span>w, h</span><span id="inspWH"></span></div>
+</div>
+
+<div id="exportBox">
+  <div id="exportPanel">
+    <b>Layout export</b>
+    <div id="exportText"></div>
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button id="copyExport">Copy to clipboard</button>
+      <button id="closeExport" class="ghost">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Project picker: index.html?project=name loads projects/name.js (default
+// reasamp), then the editor. Script tags rather than fetch() so it also
+// works when opened straight from disk (file://).
+(function () {
+  const name = new URLSearchParams(location.search).get('project') || 'reasamp';
+  const load = (src, onload) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = onload;
+    s.onerror = () => document.body.insertAdjacentHTML('afterbegin',
+      '<p style="color:#f66;padding:20px">Could not load ' + src + '</p>');
+    document.body.appendChild(s);
+  };
+  load('projects/' + name + '.js', () => {
+    document.title = 'ReaLayout — ' + window.REALAYOUT_PROJECT.name;
+    load('editor.js');
+  });
+})();
+</script>
+</body>
+</html>
