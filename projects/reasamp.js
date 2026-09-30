@@ -10,7 +10,7 @@ window.REALAYOUT_PROJECT = {
   // Knob label + value text drawn under a knob circle (from ReaSamp's
   // Knob::draw(): label at y+r+3, value under it), so a knob element's
   // box covers circle only and a hint strip shows where the text lands.
-  knob: { labelTopOffset: 3, labelBlockH: 23 },
+  knob: { labelTopOffset: 0, labelBlockH: 20 },
   panels: [
     {id:'sample',    label:'SAMPLE',     x:8,   y:346, w:210, h:434,
      states:[{id:'loop',label:'Loop'},{id:'reverse',label:'Reverse'},{id:'freeze',label:'Freeze'},{id:'pause',label:'Pause'}],
