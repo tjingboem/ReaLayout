@@ -142,7 +142,14 @@ function saveToStorage() {
 }
 
 function isVisible(el) {
-  if (el.state === '*' || !(el.panel in viewStates)) return true; // always visible / panel has no states
+  if (!(el.panel in viewStates)) return true; // panel has no states
+  if (el.state === '*') {
+    // Always visible, except in a state that lists this element id under `hide`
+    // (e.g. ReaSamp's "No Action" screen has no Action number or probability slider).
+    const panel = PROJECT.panels.find(p => p.id === el.panel);
+    const st = panel.states.find(s => s.id === viewStates[el.panel]);
+    return !(st && st.hide && st.hide.includes(el.id));
+  }
   return el.state === viewStates[el.panel];
 }
 

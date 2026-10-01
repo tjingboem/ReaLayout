@@ -13,8 +13,10 @@ window.REALAYOUT_PROJECT = {
   knob: { labelTopOffset: 0, labelBlockH: 20 },
   panels: [
     {id:'sample',    label:'SAMPLE',     x:8,   y:346, w:210, h:434,
-     states:[{id:'loop',label:'Loop'},{id:'reverse',label:'Reverse'},{id:'freeze',label:'Freeze'},{id:'pause',label:'Pause'}],
-     defaultState:'loop'},
+     // 'none' is the screen ReaSamp opens on: no Action selected, so no Action
+     // number, probability slider or Cycle Selection (they appear once an Action is picked).
+     states:[{id:'none',label:'No Action',hide:['smp_regnum','smp_prob','smp_cyclesel']},{id:'loop',label:'Loop'},{id:'reverse',label:'Reverse'},{id:'freeze',label:'Freeze'},{id:'pause',label:'Pause'}],
+     defaultState:'none'},
     {id:'filter',    label:'FILTER',     x:226, y:346, w:260, h:434},
     {id:'out',       label:'OUT',        x:490, y:346, w:260, h:434},
     {id:'localmidi', label:'LOCAL MIDI', x:754, y:346, w:338, h:434,
