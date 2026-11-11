@@ -23,3 +23,5 @@ Copy `projects/reasamp.js`, change the canvas size, panels (with optional
 `{panel, state, id, label, shape: 'box'|'knob'|'text', x, y, w, h}`.
 
 `projects/reasamp_layout_2026-09-30.json` is a saved ReaSamp layout for reference.
+
+`projects/reaats.js` describes the ReaATS editor window (default size 1100 x 640, states: no file, one file, channel set). Open `index.html?project=reaats`. ReaATS does not read the saved layout yet: it is a drawing board for now.

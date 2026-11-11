@@ -1,0 +1,93 @@
+// ReaATS project for ReaLayout. Geometry read from ATS_Editor.lua at its DEFAULT window size, 1100 x 640 (gfx.init). 11 Nov 2026.
+// Open with index.html?project=reaats
+//
+// The window can be resized, and ReaATS places things like this (keep it in mind while you move things, the script does not read this layout yet):
+//   - header, top right: every button hangs on the RIGHT edge (x = window width - something); the file line, hover line and status line start at the LEFT margin (x = 62).
+//   - the picture (plot) stretches: left margin 62, right margin 50, top 70 (100 with a channel row), bottom margin 54.
+//   - the time ruler is the strip under the picture; the bottom row (MAX PARTIALS, SPACE, ...) hangs on the BOTTOM edge (y = window height - 26).
+// Panel states: 'empty' = no file open yet; 'single' = one .ats file; 'set' = a channel set (here 3 channels: an extra header row with the
+// LEDs, the channel buttons, their visibility sliders and the STACK/OVERLAY button; the picture starts 30 px lower).
+// shape: 'box' = a button, a field or an area, 'text' = text drawn by the script, 'knob' is not used (ReaATS has none).
+// The Analysis page (ANALYSE button) is not in this project yet.
+window.REALAYOUT_PROJECT = {
+  name: 'ReaATS',
+  id: 'reaats',
+  storageKey: 'reaats_layout_v1',
+  viewStorageKey: 'reaats_layout_view_v1',
+  canvas: { w: 1100, h: 640 },
+  knob: { labelTopOffset: 0, labelBlockH: 20 },
+  panels: [
+    {id:'editor', label:'EDITOR WINDOW', x:0, y:0, w:1100, h:640,
+     states:[{id:'empty',label:'No file yet'},{id:'single',label:'One file'},{id:'set',label:'Channel set (3)'}],
+     defaultState:'single'},
+  ],
+  elements: [
+  // ── Header text (left side) ──────────────────────────────────────────────
+  {panel:'editor', state:'single', id:'hdr_info',   label:'File line: name, partials, frames, length, rate, hop, type', shape:'text', x:62, y:8,  w:520, h:16},
+  {panel:'editor', state:'set',    id:'hdr_info_s', label:'File line: name, partials, frames, length, rate, hop, type', shape:'text', x:62, y:8,  w:520, h:16},
+  {panel:'editor', state:'single', id:'hdr_hover',   label:'Hover: time, frequency, note', shape:'text', x:62,  y:28, w:320, h:16},
+  {panel:'editor', state:'set',    id:'hdr_hover_s', label:'Hover: time, frequency, note', shape:'text', x:62,  y:28, w:320, h:16},
+  {panel:'editor', state:'single', id:'hdr_partial',   label:'Hover: nearest partial, level, frame', shape:'text', x:392, y:28, w:330, h:16},
+  {panel:'editor', state:'set',    id:'hdr_partial_s', label:'Hover: nearest partial, level, frame', shape:'text', x:392, y:28, w:330, h:16},
+  {panel:'editor', state:'single', id:'hdr_status',   label:'Status line (what the last action did)', shape:'text', x:62, y:48, w:540, h:16},
+  {panel:'editor', state:'set',    id:'hdr_status_s', label:'Status line (what the last action did)', shape:'text', x:62, y:48, w:540, h:16},
+  {panel:'editor', state:'single', id:'hdr_selinfo',   label:'Selection: points, partials, time, frequency (right aligned)', shape:'text', x:622, y:48, w:464, h:16},
+  {panel:'editor', state:'set',    id:'hdr_selinfo_s', label:'Selection: points, partials, time, frequency (right aligned)', shape:'text', x:622, y:48, w:464, h:16},
+
+  // ── Header buttons (top right, hang on the right edge) ───────────────────
+  {panel:'editor', state:'single', id:'btn_analyse',   label:'ANALYSE', shape:'box', x:594, y:6, w:88,  h:20},
+  {panel:'editor', state:'set',    id:'btn_analyse_s', label:'ANALYSE', shape:'box', x:594, y:6, w:88,  h:20},
+  {panel:'editor', state:'single', id:'btn_export',    label:'EXPORT .ats', shape:'box', x:692, y:6, w:102, h:20},
+  {panel:'editor', state:'set',    id:'btn_export_s',  label:'EXPORT .ats', shape:'box', x:692, y:6, w:102, h:20},
+  {panel:'editor', state:'single', id:'btn_print',     label:'PRINT', shape:'box', x:804, y:6, w:62, h:20},
+  {panel:'editor', state:'set',    id:'btn_print_s',   label:'PRINT', shape:'box', x:804, y:6, w:62, h:20},
+  {panel:'editor', state:'single', id:'btn_start',     label:'playhead to start (under PRINT)', shape:'box', x:804, y:32, w:62, h:16},
+  {panel:'editor', state:'set',    id:'btn_start_s',   label:'playhead to start (under PRINT)', shape:'box', x:804, y:32, w:62, h:16},
+  {panel:'editor', state:'single', id:'btn_audition',   label:'AUDITION', shape:'box', x:876, y:6, w:86, h:20},
+  {panel:'editor', state:'set',    id:'btn_audition_s', label:'AUDITION', shape:'box', x:876, y:6, w:86, h:20},
+  {panel:'editor', state:'single', id:'chk_noise',   label:'Noise layer checkbox', shape:'box', x:972, y:8,  w:118, h:16},
+  {panel:'editor', state:'set',    id:'chk_noise_s', label:'Noise layer checkbox', shape:'box', x:972, y:8,  w:118, h:16},
+  {panel:'editor', state:'single', id:'chk_sine',    label:'Sine layer checkbox',  shape:'box', x:972, y:29, w:118, h:16},
+  {panel:'editor', state:'set',    id:'chk_sine_s',  label:'Sine layer checkbox',  shape:'box', x:972, y:29, w:118, h:16},
+
+  // ── Empty window ─────────────────────────────────────────────────────────
+  {panel:'editor', state:'empty', id:'empty_analyse', label:'ANALYSE or IMPORT FILE', shape:'box', x:416, y:20, w:280, h:30},
+  {panel:'editor', state:'empty', id:'empty_status',  label:'Message (could not read ..., status)', shape:'text', x:62, y:48, w:540, h:16},
+
+  // ── Channel row (channel set only): LED, ON/OFF button, visibility slider per channel, then STACK/OVERLAY ──
+  {panel:'editor', state:'set', id:'ch1_led',    label:'1 LED',    shape:'box', x:72,  y:69, w:10, h:10},
+  {panel:'editor', state:'set', id:'ch1_btn',    label:'1',        shape:'box', x:62,  y:78, w:30, h:18},
+  {panel:'editor', state:'set', id:'ch1_slider', label:'1 visibility slider', shape:'box', x:96,  y:82, w:62, h:10},
+  {panel:'editor', state:'set', id:'ch2_led',    label:'2 LED',    shape:'box', x:176, y:69, w:10, h:10},
+  {panel:'editor', state:'set', id:'ch2_btn',    label:'2',        shape:'box', x:166, y:78, w:30, h:18},
+  {panel:'editor', state:'set', id:'ch2_slider', label:'2 visibility slider', shape:'box', x:200, y:82, w:62, h:10},
+  {panel:'editor', state:'set', id:'ch3_led',    label:'3 LED',    shape:'box', x:280, y:69, w:10, h:10},
+  {panel:'editor', state:'set', id:'ch3_btn',    label:'3',        shape:'box', x:270, y:78, w:30, h:18},
+  {panel:'editor', state:'set', id:'ch3_slider', label:'3 visibility slider', shape:'box', x:304, y:82, w:62, h:10},
+  {panel:'editor', state:'set', id:'btn_stackmode', label:'STACK / OVERLAY', shape:'box', x:378, y:78, w:100, h:18},
+
+  // ── The picture and its scales ───────────────────────────────────────────
+  {panel:'editor', state:'single', id:'plot',   label:'Picture (partials and noise, time across, frequency up)', shape:'box', x:62, y:70,  w:988, h:516},
+  {panel:'editor', state:'set',    id:'plot_s', label:'Picture (partials and noise, time across, frequency up)', shape:'box', x:62, y:100, w:988, h:486},
+  {panel:'editor', state:'single', id:'scale_hz',   label:'Frequency scale (Hz)', shape:'box', x:0, y:70,  w:62, h:516},
+  {panel:'editor', state:'set',    id:'scale_hz_s', label:'Frequency scale (Hz)', shape:'box', x:0, y:100, w:62, h:486},
+  {panel:'editor', state:'single', id:'scale_note',   label:'Note names', shape:'box', x:1050, y:70,  w:50, h:516},
+  {panel:'editor', state:'set',    id:'scale_note_s', label:'Note names', shape:'box', x:1050, y:100, w:50, h:486},
+  {panel:'editor', state:'single', id:'ruler',   label:'Time ruler (click or drag: playhead)', shape:'box', x:62, y:586, w:988, h:26},
+  {panel:'editor', state:'set',    id:'ruler_s', label:'Time ruler (click or drag: playhead)', shape:'box', x:62, y:586, w:988, h:26},
+
+  // ── Bottom row (hangs on the bottom edge) ────────────────────────────────
+  {panel:'editor', state:'single', id:'btn_maxpart',   label:'MAX PARTIALS', shape:'box', x:62, y:614, w:150, h:18},
+  {panel:'editor', state:'set',    id:'btn_maxpart_s', label:'MAX PARTIALS', shape:'box', x:62, y:614, w:150, h:18},
+  {panel:'editor', state:'single', id:'btn_space',   label:'SPACE (STEREO / P-STEREO / VBAP)', shape:'box', x:222, y:614, w:96, h:18},
+  {panel:'editor', state:'set',    id:'btn_space_s', label:'SPACE (STEREO / P-STEREO / VBAP)', shape:'box', x:222, y:614, w:96, h:18},
+  {panel:'editor', state:'single', id:'space_slider',   label:'SPACE width / spread slider', shape:'box', x:326, y:618, w:96, h:10},
+  {panel:'editor', state:'set',    id:'space_slider_s', label:'SPACE width / spread slider', shape:'box', x:326, y:618, w:96, h:10},
+  {panel:'editor', state:'single', id:'space_pct',   label:'width 100%', shape:'text', x:428, y:616, w:70, h:14},
+  {panel:'editor', state:'set',    id:'space_pct_s', label:'width 100%', shape:'text', x:428, y:616, w:70, h:14},
+  {panel:'editor', state:'single', id:'space_out',   label:'OUT (VBAP only)', shape:'box', x:494, y:614, w:62, h:18},
+  {panel:'editor', state:'set',    id:'space_out_s', label:'OUT (VBAP only)', shape:'box', x:494, y:614, w:62, h:18},
+  {panel:'editor', state:'single', id:'build_stamp',   label:'build stamp', shape:'text', x:994, y:623, w:100, h:14},
+  {panel:'editor', state:'set',    id:'build_stamp_s', label:'build stamp', shape:'text', x:994, y:623, w:100, h:14},
+  ]
+};
